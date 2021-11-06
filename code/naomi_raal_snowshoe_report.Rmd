@@ -1,0 +1,30 @@
+---
+title: "naomi_raal_snowshoe_report.Rmd"
+author: "Naomi Raal"
+date: "11/6/2021"
+output: 
+  html_document: 
+    theme: yeti
+---
+## Introduction 
+
+## Data and Analyses 
+
+Data Citation:
+Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(janitor)
+library(here)
+library(kableExtra)
+```
+
+```{r echo=FALSE}
+bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
+```
+## Juvenile hare initial investigation
+
+# Annual juvenile hare trap counts
+
