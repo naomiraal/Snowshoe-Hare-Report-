@@ -6,9 +6,10 @@ output:
   html_document: 
     theme: yeti
 ---
-## Introduction 
+# Overview
+### Introduction 
 
-## Data and Analyses 
+### Data and Analyses 
 
 Data Citation:
 Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. 
@@ -19,12 +20,105 @@ library(tidyverse)
 library(janitor)
 library(here)
 library(kableExtra)
+library(dplyr)
+library(lubridate)
+library(kableExtra)
+library(ggbeeswarm)
 ```
 
 ```{r echo=FALSE}
 bonanza_hares <- read_csv(here("data", "bonanza_hares.csv"))
 ```
-## Juvenile hare initial investigation
+# Juvenile hare initial investigation
 
-# Annual juvenile hare trap counts
+## i) Annual juvenile hare trap counts
+ Count the total number of juvenile hare trappings during each year of the study, and create a finalized data visualization of the counts by year. Include a figure caption below the figure in your report. 
+
+```{r}
+# First I will filter to only return juvenile hare trappings
+j_hares_count <- bonanza_hares %>% 
+  filter(age == "j") %>% 
+  # Then I will make sure that the date column is actually a date and create a new column containing just the year
+  mutate(date_new = mdy(date)) %>% 
+  mutate(year = year(date_new)) %>% 
+  # Now I will group by year and use the summarize function to get an overall count of j hare trappings per year
+  group_by(year) %>% 
+  count()
+  
+```
+
+
+```{r}
+ #now I will create a visualization of this data
+  ggplot(data = j_hares_count, aes(x = year, y = n)) +
+  geom_bar(stat = "identity", fill = "darkorchid") +
+  scale_x_continuous(limits = c(1998, 2013), breaks = c(1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012)) + scale_y_continuous(breaks = c(20, 40, 60, 80, 100, 120, 140), limits = c(0, 150)) + 
+  labs(title = "Annual Juvenile Hare Trap Counts (RAAL)", y = "Count", x = "Year", caption = "Annual Juvenile Hare Trappings from 1999- 2012. Trappings were highest in 2000, 2005, and 2008.") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+### Major Takeaways 
+Overall there was a lot of variation in the number of juvenile hares trapped from year to year. The maximum number of juvenile hares trapped in one year was 126 in the year 1999. The minimum number of juvenile hares trapped was 0 in the years 2002 and 2009. The mean annual number of juvenile hares trapped was 30.667. The median annual number trapped was 18.5. The number of annual trappings tended to decrease with time. Moving forward, I would suggest standardizing the number of days and number of traps in the study each year.
+
+```{r}
+#here I will calculate the values in the column "number_trappings" to be numeric so I can calculate mean and median values for them
+j_hares_count
+  mean_count <- round(mean(n), 1)
+```
+
+### ii) Visualize juvenile hare weights.
+Create a finalized data visualization (or visualizations) in which you compare **juvenile hare weights by sex and site (grid)** (ignore other variables). You should include groups where these variables are not recorded (`NA`). Include finalized figure captions below your visualization(s).
+
+```{r}
+j_hares <- bonanza_hares %>% 
+   filter(age == "j")
+```
+
+```{r}
+# Here I will use the group_by and summarize functions again to create a subset of data that can be used to visualize differences in weight by sex and site 
+j_hares_grid <- j_hares %>% 
+ group_by(grid)
+```
+
+```{r}
+# Now I will visualize this data
+ggplot(data = j_hares_grid, aes(y = weight, x = sex)) +
+  geom_beeswarm(aes(color = sex)) +
+  facet_wrap(~ grid) +
+  labs(title = "Juvenile Hare Weight By Site (RAAL)", caption = "Juvenile hare weights compared by collection site and sex ", y = "Weight (g),", x = "Sex") +
+  stat_summary(fun=mean, 
+               geom="point", 
+               shape=20, 
+               size=4, 
+               color="black", 
+               fill="black") +
+  theme(text = element_text(family = "Times"))
+```
+## Major Takeaways 
+
+Male juvenile hares tend to be slightly heavier than female hares. I included the mean point on these graphs in black to make this comparison easier to see. Overall, the differences in weight are fairly small. 
+
+### iii) Juvenile weight comparison
+-A finalized table containing the mean, standard deviation, and sample size for male and female juvenile snowshoe hares, with a table caption (remember, a table caption should be placed *above* the table in your report)
+-A 2 - 3 sentence comprehensive statement of the means comparison, including at least:
+-The actual difference in means
+-Effect size (Cohen's *d*) (see effsize::cohen.d() example in the Lab 5 key)
+-Outcome of an unpaired two-sample t-test
+
+```{r}
+# Here I will wrangle the data to get it ready to put into a table
+j_hares_summary <- j_hares %>% 
+  group_by(sex) %>% 
+  summarize(mean_weight = round(mean(weight, na.rm = TRUE), 1),
+            sd_weight = round(sd(weight, na.rm = TRUE), 1), 
+            n = n())
+  
+```
+
+```{r}
+# Here I will put this data into a table
+j_hares_summary %>% 
+  kable(col.names = c("Sex", "Mean Weight (g)", "Standard Deviation", "Sample Size"), caption = "Juvenile Hare Weights by Sex (RAAL)") %>% 
+  kable_styling(bootstrap_options = "basic")
+```
+
 
